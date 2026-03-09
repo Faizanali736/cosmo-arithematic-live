@@ -1,43 +1,275 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
-
-on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
-jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.S Traders - Cheapest Dot & Key, Minimalist, Fresh Finds</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; }
+        
+        /* Header */
+        header { position: fixed; top: 0; width: 100%; background: rgba(255,255,255,0.95); 
+                 backdrop-filter: blur(10px); z-index: 1000; padding: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; }
+        .logo { font-size: 1.8rem; font-weight: bold; color: #e91e63; }
+        .tagline { font-size: 0.9rem; color: #666; margin-top: 0.2rem; }
+        
+        /* Hero */
+        .hero { height: 100vh; background: url('https://i.ibb.co/DgCPQ4CH/Screenshot-2026-03-09-214741.png') center/cover; 
+                display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; 
+                text-shadow: 0 2px 4px rgba(0,0,0,0.5); padding: 0 2rem; }
+        .hero h1 { font-size: clamp(2.5rem, 8vw, 5rem); margin-bottom: 1rem; }
+        .hero-btn { background: #e91e63; color: white; padding: 1rem 2.5rem; border: none; border-radius: 50px; 
+                    font-size: 1.2rem; cursor: pointer; transition: all 0.3s; text-decoration: none; display: inline-block; }
+        .hero-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(233,30,99,0.4); }
+        
+        /* Products Section */
+        .products { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 3rem; color: #333; }
+        .carousel { display: flex; overflow-x: auto; gap: 1.5rem; padding: 1rem 0; scroll-snap-type: x mandatory; 
+                    scrollbar-width: none; -ms-overflow-style: none; }
+        .carousel::-webkit-scrollbar { display: none; }
+        .product-card { min-width: 280px; flex: 0 0 auto; background: white; border-radius: 20px; 
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; scroll-snap-align: start; 
+                        transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
+        .product-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .product-img { width: 100%; height: 250px; object-fit: cover; }
+        .product-info { padding: 1.5rem; text-align: center; }
+        .product-name { font-size: 1.3rem; font-weight: bold; margin-bottom: 0.5rem; color: #333; }
+        .product-price { font-size: 1.5rem; color: #e91e63; font-weight: bold; margin-bottom: 1rem; }
+        .add-btn { background: #4caf50; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 25px; 
+                   cursor: pointer; font-size: 1rem; transition: all 0.3s; width: 100%; }
+        .add-btn:hover { background: #45a049; transform: scale(1.05); }
+        
+        /* Cart */
+        .cart-icon { position: fixed; bottom: 20px; right: 20px; background: #e91e63; color: white; 
+                     width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; 
+                     justify-content: center; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 20px rgba(233,30,99,0.4); 
+                     z-index: 1001; transition: all 0.3s; }
+        .cart-count { position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; 
+                      border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; 
+                      justify-content: center; font-size: 0.8rem; font-weight: bold; }
+        .cart-modal { position: fixed; top: 0; right: -400px; width: 400px; height: 100vh; 
+                      background: white; box-shadow: -5px 0 20px rgba(0,0,0,0.1); transition: right 0.3s; 
+                      z-index: 1002; padding: 2rem; overflow-y: auto; }
+        .cart-modal.active { right: 0; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; 
+                       border-bottom: 2px solid #eee; padding-bottom: 1rem; }
+        .cart-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; }
+        .cart-item { display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #eee; }
+        .cart-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; }
+        .cart-item-info { flex: 1; }
+        .cart-item-name { font-weight: bold; margin-bottom: 0.3rem; }
+        .cart-price { color: #e91e63; font-weight: bold; }
+        .cart-total { font-size: 1.5rem; font-weight: bold; text-align: center; margin: 2rem 0; color: #333; }
+        .customer-info { margin-bottom: 1.5rem; }
+        .customer-info input { width: 100%; padding: 0.8rem; border: 2px solid #eee; border-radius: 10px; 
+                               margin-bottom: 1rem; font-size: 1rem; }
+        .order-btn { background: #e91e63; color: white; border: none; padding: 1rem; border-radius: 10px; 
+                     width: 100%; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; }
+        .order-btn:hover { background: #c2185b; transform: translateY(-2px); }
+        .empty-cart { text-align: center; color: #666; font-style: italic; margin-top: 2rem; }
+        
+        /* WhatsApp Button */
+        .whatsapp-btn { position: fixed; bottom: 100px; right: 20px; background: #25D366; color: white; 
+                        width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; 
+                        justify-content: center; font-size: 1.8rem; cursor: pointer; box-shadow: 0 5px 20px rgba(37,211,102,0.4); 
+                        z-index: 1001; transition: all 0.3s; text-decoration: none; }
+        
+        /* Footer */
+        footer { background: #333; color: white; text-align: center; padding: 2rem; }
+        .email { color: #e91e63; text-decoration: none; }
+        
+        @media (max-width: 768px) {
+            .cart-modal { width: 100%; right: -100%; }
+            nav { padding: 0 1rem; }
+            .products { padding: 3rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div>
+                <div class="logo">S.S Traders</div>
+                <div class="tagline">Cheapest Minimalist • Cheapest Dot & Key • Fresh Finds • Best Prices</div>
+            </div>
+        </nav>
+    </header>
+    
+    <section class="hero">
+        <h1>Best Prices on Dot & Key</h1>
+        <a href="#products" class="hero-btn">Shop Now</a>
+    </section>
+    
+    <section id="products" class="products">
+        <h2 class="section-title">Featured Products</h2>
+        <div class="carousel">
+            <div class="product-card" data-name="Dot & Key Watermelon Cooling Gel" data-price="₹299">
+                <img src="https://i.ibb.co/xq5chWbf/37a9522386d143c09dbcd0ed823530fcwatermark.webp" alt="Watermelon Cooling Gel" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Dot & Key Watermelon Cooling Gel</div>
+                    <div class="product-price">₹299</div>
+                    <button class="add-btn">Add to Cart</button>
+                </div>
+            </div>
+            <div class="product-card" data-name="Dot & Key Barrier Repair Serum" data-price="₹495">
+                <img src="https://i.ibb.co/HLy5TKq8/61w-Wg-Jkb-VBL-SL1200.jpg" alt="Barrier Repair Serum" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Dot & Key Barrier Repair Serum</div>
+                    <div class="product-price">₹495</div>
+                    <button class="add-btn">Add to Cart</button>
+                </div>
+            </div>
+            <div class="product-card" data-name="Dot & Key Cica Calming Gel" data-price="₹349">
+                <img src="https://i.ibb.co/0RDpHMdm/61-BH3-UH5jj-L-SL1200.jpg" alt="Cica Calming Gel" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Dot & Key Cica Calming Gel</div>
+                    <div class="product-price">₹349</div>
+                    <button class="add-btn">Add to Cart</button>
+                </div>
+            </div>
+            <div class="product-card" data-name="Dot & Key 72Hr Hydration Serum" data-price="₹595">
+                <img src="https://i.ibb.co/VcVkQxTh/61w-UJa-QMem-L-SL1200.jpg" alt="72Hr Hydration Serum" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Dot & Key 72Hr Hydration Serum</div>
+                    <div class="product-price">₹595</div>
+                    <button class="add-btn">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Cart Modal -->
+    <div id="cartModal" class="cart-modal">
+        <div class="cart-header">
+            <h3>Your Cart (<span id="cartCount">0</span>)</h3>
+            <button class="cart-close" onclick="closeCart()">×</button>
+        </div>
+        <div id="cartItems"></div>
+        <div class="cart-total">Total: ₹<span id="cartTotal">0</span></div>
+        <div class="customer-info">
+            <input type="text" id="customerName" placeholder="Your Name" required>
+            <input type="tel" id="customerPhone" placeholder="Your Phone Number" required>
+        </div>
+        <button class="order-btn" onclick="sendOrder()">Send Order</button>
+        <div id="emptyCart" class="empty-cart" style="display: none;">Your cart is empty</div>
+    </div>
+    
+    <!-- Floating Buttons -->
+    <a href="https://wa.me/+918017587091" class="whatsapp-btn" target="_blank">💬</a>
+    <div class="cart-icon" onclick="toggleCart()">
+        🛒 <span id="cartBadge" class="cart-count" style="display: none;">0</span>
+    </div>
+    
+    <footer>
+        <p>&copy; 2026 S.S Traders. Contact: <a href="mailto:ziakhn736@gmail.com" class="email">ziakhn736@gmail.com</a></p>
+    </footer>
+    
+    <script>
+        let cart = [];
+        
+        // Product names and prices
+        const products = [
+            { name: "Dot & Key Watermelon Cooling Gel", price: 299, img: "https://i.ibb.co/xq5chWbf/37a9522386d143c09dbcd0ed823530fcwatermark.webp" },
+            { name: "Dot & Key Barrier Repair Serum", price: 495, img: "https://i.ibb.co/HLy5TKq8/61w-Wg-Jkb-VBL-SL1200.jpg" },
+            { name: "Dot & Key Cica Calming Gel", price: 349, img: "https://i.ibb.co/0RDpHMdm/61-BH3-UH5jj-L-SL1200.jpg" },
+            { name: "Dot & Key 72Hr Hydration Serum", price: 595, img: "https://i.ibb.co/VcVkQxTh/61w-UJa-QMem-L-SL1200.jpg" }
+        ];
+        
+        // Add to cart
+        document.querySelectorAll('.add-btn').forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                const product = products[index];
+                cart.push({ ...product, qty: 1 });
+                updateCart();
+            });
+        });
+        
+        function updateCart() {
+            const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            
+            document.getElementById('cartCount').textContent = cartCount;
+            document.getElementById('cartBadge').textContent = cartCount;
+            document.getElementById('cartTotal').textContent = total;
+            document.getElementById('cartBadge').style.display = cartCount > 0 ? 'flex' : 'none';
+            
+            const cartItems = document.getElementById('cartItems');
+            if (cart.length === 0) {
+                document.getElementById('emptyCart').style.display = 'block';
+                cartItems.innerHTML = '';
+                return;
+            }
+            document.getElementById('emptyCart').style.display = 'none';
+            
+            cartItems.innerHTML = cart.map((item, index) => `
+                <div class="cart-item">
+                    <img src="${item.img}" alt="${item.name}">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.name}</div>
+                        <div class="cart-price">₹${item.price} x ${item.qty}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function toggleCart() {
+            document.getElementById('cartModal').classList.toggle('active');
+        }
+        
+        function closeCart() {
+            document.getElementById('cartModal').classList.remove('active');
+        }
+        
+        function sendOrder() {
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
+            
+            if (!name || !phone || cart.length === 0) {
+                alert('Please fill your name, phone, and add items to cart');
+                return;
+            }
+            
+            const orderDetails = cart.map(item => `${item.name} (₹${item.price} x ${item.qty})`).join('\n');
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            
+            const subject = `New Order from ${name} - Total: ₹${total}`;
+            const body = `New Order Details:\n\nCustomer: ${name}\nPhone: ${phone}\n\nItems:\n${orderDetails}\n\nTotal: ₹${total}\n\nPlease contact customer to confirm.`;
+            
+            const mailto = `mailto:ziakhn736@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailto;
+            
+            alert('Order sent! Check your email or WhatsApp for confirmation.');
+            cart = [];
+            updateCart();
+            closeCart();
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerPhone').value = '';
+        }
+        
+        // Smooth scroll for hero button
+        document.querySelector('.hero-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Close cart on overlay click
+        document.getElementById('cartModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('cartModal')) closeCart();
+        });
+        
+        // Auto-slide carousel
+        let currentSlide = 0;
+        const carousel = document.querySelector('.carousel');
+        setInterval(() => {
+            currentSlide = (currentSlide + 1) % document.querySelectorAll('.product-card').length;
+            carousel.scrollTo({
+                left: currentSlide * 300,
+                behavior: 'smooth'
+            });
+        }, 4000);
+    </script>
+</body>
+</html>
